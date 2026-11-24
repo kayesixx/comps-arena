@@ -45,7 +45,8 @@ def _fetch(url: str, headers: dict, sec: bool) -> bytes:
             time.sleep(wait)
         _last_sec_call = time.time()
     req = urllib.request.Request(url, headers={**headers, "Accept-Encoding": "gzip"})
-    for attempt in range(3):
+    attempts = 4
+    for attempt in range(attempts):
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
                 body = r.read()
@@ -53,14 +54,12 @@ def _fetch(url: str, headers: dict, sec: bool) -> bytes:
                     body = gzip.decompress(body)
                 return body
         except urllib.error.HTTPError as e:
-            if e.code == 404:
-                raise
-            if attempt == 2:
+            if e.code in (403, 404) or attempt == attempts - 1:
                 raise
         except urllib.error.URLError:
-            if attempt == 2:
+            if attempt == attempts - 1:
                 raise
-        time.sleep(1.5 * (attempt + 1))
+        time.sleep(2 ** (attempt + 1))  # 2s, 4s, 8s: the SEC answers 503 when it's busy
     raise RuntimeError("unreachable")
 
 
@@ -153,7 +152,10 @@ def companies_in_sic(sic: str, max_pages: int = 12) -> list[int]:
             "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany"
             f"&SIC={sic}&type=10-K&owner=include&count=100&start={page * 100}&output=atom"
         )
-        body = cached(url, 30 * DAY).decode("utf-8", "replace")
+        try:
+            body = cached(url, 30 * DAY).decode("utf-8", "replace")
+        except urllib.error.URLError:
+            break  # one unreachable list shouldn't sink the whole peer search
         found = [int(c) for c in re.findall(r"<cik>(\d+)</cik>", body)]
         ciks.extend(found)
         if len(found) < 100:

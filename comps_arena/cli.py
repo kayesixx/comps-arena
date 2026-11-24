@@ -51,6 +51,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="comps", description="Trading comps for any US-listed non-financial company.")
     ap.add_argument("ticker")
     ap.add_argument("--peers", help="comma-separated peer tickers (default: picked by SIC code and size)")
+    ap.add_argument("--exclude", help="comma-separated tickers to keep out of the automatic peer set")
     ap.add_argument("--n", type=int, default=6, help="number of peers to pick automatically (default 6)")
     ap.add_argument("--out", type=Path, default=Path("out"), help="output folder (default ./out)")
     ap.add_argument("--open", action="store_true", help="open the arena page when done")
@@ -60,9 +61,13 @@ def main(argv: list[str] | None = None) -> int:
     peers = [p.strip() for p in a.peers.split(",") if p.strip()] if a.peers else None
     try:
         print(f"Loading {a.ticker.upper()}...")
-        f = build(a.ticker, peers, a.n)
+        excl = [t.strip() for t in a.exclude.split(",") if t.strip()] if a.exclude else ()
+        f = build(a.ticker, peers, a.n, exclude=excl)
     except ArenaError as e:
         print(f"\n✖ {e}", file=sys.stderr)
+        return 1
+    except OSError as e:  # network trouble: say so plainly instead of a traceback
+        print(f"\n✖ Couldn't reach the data source ({e}). The SEC is sometimes busy: try again in a minute.", file=sys.stderr)
         return 1
 
     out = a.out / f.target.ticker

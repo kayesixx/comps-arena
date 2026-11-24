@@ -40,14 +40,14 @@ Coke trades at roughly twice the peer median EV/EBITDA. Faster growth and a much
 | EV | market cap + net debt + minority interest |
 | Shares | cover-page count, checked against the diluted weighted average so multi-class companies (Nike, Alphabet) aren't undercounted |
 | Prices | Yahoo Finance, with the 52-week range |
-| Peers | listed companies with the same 4-digit SIC code, closest in revenue; widened to neighbouring codes when the industry is thin |
+| Peers | listed companies with the same 4-digit SIC code, closest in revenue; widened to neighbouring codes, then related industries, when the industry is thin |
 
 Every figure that is estimated or adjusted is flagged on the workbook's *Notes* sheet.
 
 ## Known rough edges
 
 - **No adjusted EBITDA.** One-offs and stock-based compensation aren't stripped out, so EBITDA is reported, not "adjusted".
-- **SIC codes are blunt.** Nike's code holds only two listed companies, so pass peers by hand: `comps NKE --peers DECK,CROX,UAA,LULU`.
+- **SIC codes are blunt.** Nike's own code (rubber & plastics footwear) holds only Deckers, Crocs and On. When an industry is that thin, the tool widens to neighbouring codes, then to a short list of industries the SIC system splits apart (footwear and apparel, beverages, software, pharma, retail). Exact-industry peers always come first. Override with `--peers`, or drop a misfit with `--exclude`.
 - **Financials are excluded** (SIC 6000–6799). Banks, insurers and REITs are valued on P/B and P/E, not EV/EBITDA.
 - **IFRS filers** (most foreign companies filing 20-Fs) drop out of the peer set.
 - **Captive finance arms** (Ford Credit, GM Financial) report debt under custom tags, so those companies' EV is understated.
@@ -61,6 +61,7 @@ echo "Comps Arena you@example.com" > ~/.config/comps-arena/user_agent   # the SE
 
 comps KO                                   # automatic peers
 comps NKE --peers DECK,CROX,UAA,LULU       # your own peers
+comps NKE --exclude PVH                    # automatic peers, minus one you disagree with
 comps NVDA --n 8 --open                    # 8 peers, open the arena page when done
 ```
 
