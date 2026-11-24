@@ -1,4 +1,4 @@
-"""comps TICKER [--peers A,B,C] [--n 6] [--out DIR] [--open]"""
+"""comps TICKER [--peers A,B,C] [--exclude X] [--n 6] [--out DIR] [--no-open]"""
 
 from __future__ import annotations
 
@@ -53,8 +53,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--peers", help="comma-separated peer tickers (default: picked by SIC code and size)")
     ap.add_argument("--exclude", help="comma-separated tickers to keep out of the automatic peer set")
     ap.add_argument("--n", type=int, default=6, help="number of peers to pick automatically (default 6)")
-    ap.add_argument("--out", type=Path, default=Path("out"), help="output folder (default ./out)")
-    ap.add_argument("--open", action="store_true", help="open the arena page when done")
+    ap.add_argument("--out", type=Path, default=Path(__file__).resolve().parent.parent / "out",
+                    help="output folder (default: the out/ folder in this project)")
+    ap.add_argument("--no-open", action="store_true", help="don't open the arena page when done")
     a = ap.parse_args(argv)
 
     print(BANNER)
@@ -86,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\n  {arena._verdict(f)}\n")
     print(f"  Workbook: {(out / 'comps.xlsx').resolve()}")
     print(f"  Arena:    {(out / 'arena.html').resolve()}")
-    if a.open:
+    if not a.no_open:
         subprocess.Popen(["xdg-open", str(out / "arena.html")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return 0
 

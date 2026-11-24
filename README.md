@@ -62,9 +62,9 @@ echo "Comps Arena you@example.com" > ~/.config/comps-arena/user_agent   # the SE
 comps KO                                   # automatic peers
 comps NKE --peers DECK,CROX,UAA,LULU       # your own peers
 comps NKE --exclude PVH                    # automatic peers, minus one you disagree with
-comps NVDA --n 8 --open                    # 8 peers, open the arena page when done
+comps NVDA --n 8 --no-open                 # 8 peers, don't open the arena page
 ```
 
-Output goes to `out/<TICKER>/`: `comps.xlsx`, `football_field.png` and `arena.html`. Responses are cached in `~/.cache/comps-arena`, and SEC requests are throttled to stay well inside its fair-access limits.
+The arena page opens when the run finishes. Output goes to the project's `out/<TICKER>/`: `comps.xlsx`, `football_field.png` and `arena.html`. Responses are cached in `~/.cache/comps-arena`, and SEC requests are throttled to stay well inside its fair-access limits.
 
 Tests: `.venv/bin/pip install -e .[test] && .venv/bin/pytest`
